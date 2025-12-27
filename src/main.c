@@ -31,9 +31,9 @@ main (void)
   for (i = 0; i < N; i++)
     {
       ensemble[i].position.x
-          = gsl_ran_gaussian (r, 50) + (float)screenWidth / 2 + 50;
+          = gsl_ran_gaussian (r, 50) + (float)screenWidth / 2;
       ensemble[i].position.y
-          = gsl_ran_gaussian (r, 50) + (float)screenHeight / 2 + 50;
+          = gsl_ran_gaussian (r, 50) + (float)screenHeight / 2;
       ensemble[i].velocity.x = gsl_ran_gaussian (r, 5);
       ensemble[i].velocity.y = gsl_ran_gaussian (r, 5);
       ensemble[i].radius = 8.0;
