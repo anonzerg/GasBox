@@ -4,6 +4,9 @@
 #include <raymath.h>
 #include <stdlib.h>
 
+#define N 1000
+#define G 2
+
 typedef struct
 {
   Vector2 position;
@@ -13,12 +16,11 @@ typedef struct
   Color color;
 } Particle;
 
-#define N 500
-
 void InitParticle (Particle *particle, Vector2 position, Vector2 velocity,
                    float radius, Color color);
 void CollisionWithWall (Particle *particle, int screenWidth, int screenHeight);
 void ImpulseCollision (Particle *particle1, Particle *particle2);
+void Gravity (Particle *particle1, Particle *particle2);
 
 int
 main (void)
@@ -49,7 +51,7 @@ main (void)
           for (int j = 0; j < i; j++)
             {
               float dist = Vector2Distance (position, ensemble[j].position);
-              if (dist < 20.0f) // 8.0 + 8.0 radius sum
+              if (dist < 20.0f)
                 {
                   validPosition = false;
                   break;
@@ -58,14 +60,13 @@ main (void)
         }
 
       Vector2 velocity
-
           = (Vector2){ gsl_ran_rayleigh (r, 1.0), gsl_ran_rayleigh (r, 1.0) };
       InitParticle (&ensemble[i], position, velocity, 8.0, RAYWHITE);
     }
 
   for (i = 0; i < N / 10; i++)
     {
-      ensemble[i].color = GREEN;
+      ensemble[i].color = MAROON;
     }
 
   InitWindow (screenWidth, screenHeight, "Gas Box");
@@ -86,6 +87,7 @@ main (void)
         {
           for (j = i + 1; j < N; j++)
             {
+              Gravity (&ensemble[i], &ensemble[j]);
               float dist = Vector2Distance (ensemble[i].position,
                                             ensemble[j].position);
               if (dist < ensemble[i].radius + ensemble[j].radius)
@@ -162,4 +164,18 @@ ImpulseCollision (Particle *particle1, Particle *particle2)
 
   particle1->velocity = Vector2Subtract (particle1->velocity, impulseVector);
   particle2->velocity = Vector2Add (particle2->velocity, impulseVector);
+}
+
+void
+Gravity (Particle *particle1, Particle *particle2)
+{
+  Vector2 deltaPosition
+      = Vector2Subtract (particle2->position, particle1->position);
+
+  float force = G / Vector2LengthSqr (deltaPosition);
+  Vector2 direction = Vector2Normalize (deltaPosition);
+  Vector2 acceleration = Vector2Scale (direction, force);
+
+  particle1->velocity = Vector2Add (particle1->velocity, acceleration);
+  particle2->velocity = Vector2Subtract (particle2->velocity, acceleration);
 }
