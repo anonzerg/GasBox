@@ -1,6 +1,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 #include <raylib.h>
+#include <raymath.h>
 #include <stdlib.h>
 
 typedef struct
@@ -13,6 +14,10 @@ typedef struct
 } Particle;
 
 #define N 1000
+
+void InitParticle (Particle *particle, Vector2 position, Vector2 velocity,
+                   float radius, Color color);
+void CollisionWithWall (Particle *particle, int screenWidth, int screenHeight);
 
 int
 main (void)
@@ -30,14 +35,12 @@ main (void)
 
   for (i = 0; i < N; i++)
     {
-      ensemble[i].position.x
-          = gsl_ran_gaussian (r, 50) + (float)screenWidth / 2;
-      ensemble[i].position.y
-          = gsl_ran_gaussian (r, 50) + (float)screenHeight / 2;
-      ensemble[i].velocity.x = gsl_ran_gaussian (r, 5);
-      ensemble[i].velocity.y = gsl_ran_gaussian (r, 5);
-      ensemble[i].radius = 8.0;
-      ensemble[i].color = RAYWHITE;
+      Vector2 position
+          = (Vector2){ gsl_ran_gaussian (r, 50.0) + (float)screenWidth / 2,
+                       gsl_ran_gaussian (r, 50.0) + (float)screenHeight / 2 };
+      Vector2 velocity
+          = (Vector2){ gsl_ran_rayleigh (r, 5.0), gsl_ran_rayleigh (r, 5.0) };
+      InitParticle (&ensemble[i], position, velocity, 8.0, RAYWHITE);
     }
 
   for (i = 0; i < N / 10; i++)
@@ -54,16 +57,9 @@ main (void)
       ClearBackground (BLACK);
       for (i = 0; i < N; i++)
         {
-          ensemble[i].position.x += ensemble[i].velocity.x;
-          ensemble[i].position.y += ensemble[i].velocity.y;
-
-          if (ensemble[i].position.x - ensemble[i].radius <= 0
-              || ensemble[i].position.x + ensemble[i].radius >= screenWidth)
-            ensemble[i].velocity.x = -1.0 * ensemble[i].velocity.x;
-
-          if (ensemble[i].position.y - ensemble[i].radius <= 0
-              || ensemble[i].position.y + ensemble[i].radius >= screenHeight)
-            ensemble[i].velocity.y = -1.0 * ensemble[i].velocity.y;
+          ensemble[i].position
+              = Vector2Add (ensemble[i].position, ensemble[i].velocity);
+          CollisionWithWall (&ensemble[i], screenWidth, screenHeight);
 
           DrawCircleV (ensemble[i].position, ensemble[i].radius,
                        ensemble[i].color);
@@ -73,4 +69,26 @@ main (void)
   CloseWindow ();
 
   exit (EXIT_SUCCESS);
+}
+
+void
+InitParticle (Particle *particle, Vector2 position, Vector2 velocity,
+              float radius, Color color)
+{
+  particle->position = position;
+  particle->velocity = velocity;
+  particle->radius = radius;
+  particle->color = color;
+}
+
+void
+CollisionWithWall (Particle *particle, int screenWidth, int screenHeight)
+{
+  if (particle->position.x - particle->radius <= 0
+      || particle->position.x + particle->radius >= screenWidth)
+    particle->velocity.x = -1.0 * particle->velocity.x;
+
+  if (particle->position.y - particle->radius <= 0
+      || particle->position.y + particle->radius >= screenHeight)
+    particle->velocity.y = -1.0 * particle->velocity.y;
 }
