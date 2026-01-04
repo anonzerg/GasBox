@@ -35,6 +35,7 @@ main (void)
 
   Particle ensemble[N];
   int i, j;
+  float radius = 8.0f;
 
   for (i = 0; i < N; i++)
     {
@@ -51,7 +52,7 @@ main (void)
           for (int j = 0; j < i; j++)
             {
               float dist = Vector2Distance (position, ensemble[j].position);
-              if (dist < 20.0f)
+              if (dist < 2 * radius)
                 {
                   validPosition = false;
                   break;
@@ -61,7 +62,7 @@ main (void)
 
       Vector2 velocity
           = (Vector2){ gsl_ran_rayleigh (r, 1.0), gsl_ran_rayleigh (r, 1.0) };
-      InitParticle (&ensemble[i], position, velocity, 8.0, RAYWHITE);
+      InitParticle (&ensemble[i], position, velocity, radius, RAYWHITE);
     }
 
   for (i = 0; i < N / 10; i++)
@@ -78,9 +79,9 @@ main (void)
       ClearBackground (BLACK);
       for (i = 0; i < N; i++)
         {
+          CollisionWithWall (&ensemble[i], screenWidth, screenHeight);
           ensemble[i].position
               = Vector2Add (ensemble[i].position, ensemble[i].velocity);
-          CollisionWithWall (&ensemble[i], screenWidth, screenHeight);
         }
 
       for (i = 0; i < N; i++)
@@ -90,7 +91,7 @@ main (void)
               Gravity (&ensemble[i], &ensemble[j]);
               float dist = Vector2Distance (ensemble[i].position,
                                             ensemble[j].position);
-              if (dist < ensemble[i].radius + ensemble[j].radius)
+              if (dist <= ensemble[i].radius + ensemble[j].radius)
                 {
                   ImpulseCollision (&ensemble[i], &ensemble[j]);
                 }
