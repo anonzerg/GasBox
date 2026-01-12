@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #define N 1000
-#define G 2
+#define G 0.1
 
 typedef struct
 {
@@ -25,8 +25,10 @@ void Gravity (Particle *particle1, Particle *particle2);
 int
 main (void)
 {
-  int screenWidth = 600 * 2;
-  int screenHeight = 600 * 2;
+  const int screenWidth = 600 * 2;
+  const int screenHeight = 600 * 2;
+  const int fps = 60;
+
   const gsl_rng *r;
   const gsl_rng_type *t;
   gsl_rng_env_setup ();
@@ -34,9 +36,10 @@ main (void)
   r = gsl_rng_alloc (t);
 
   Particle ensemble[N];
-  int i, j;
-  float radius = 8.0f;
+  const float radius = 8.0f;
+  const float speed = 40.0f;
 
+  int i, j;
   for (i = 0; i < N; i++)
     {
       bool validPosition = false;
@@ -60,8 +63,8 @@ main (void)
             }
         }
 
-      Vector2 velocity
-          = (Vector2){ gsl_ran_rayleigh (r, 1.0), gsl_ran_rayleigh (r, 1.0) };
+      Vector2 velocity = (Vector2){ gsl_ran_rayleigh (r, speed),
+                                    gsl_ran_rayleigh (r, speed) };
       InitParticle (&ensemble[i], position, velocity, radius, RAYWHITE);
     }
 
@@ -71,7 +74,7 @@ main (void)
     }
 
   InitWindow (screenWidth, screenHeight, "Gas Box");
-  SetTargetFPS (120);
+  SetTargetFPS (fps);
 
   while (!WindowShouldClose ())
     {
@@ -80,8 +83,9 @@ main (void)
       for (i = 0; i < N; i++)
         {
           CollisionWithWall (&ensemble[i], screenWidth, screenHeight);
-          ensemble[i].position
-              = Vector2Add (ensemble[i].position, ensemble[i].velocity);
+          ensemble[i].position = Vector2Add (
+              ensemble[i].position,
+              Vector2Scale (ensemble[i].velocity, GetFrameTime ()));
         }
 
       for (i = 0; i < N; i++)
