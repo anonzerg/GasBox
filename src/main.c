@@ -27,7 +27,7 @@ main (void)
 {
   const int screenWidth = 600 * 2;
   const int screenHeight = 600 * 2;
-  const int fps = 60;
+  const int fps = 120;
 
   const gsl_rng *r;
   const gsl_rng_type *t;
@@ -52,7 +52,7 @@ main (void)
             gsl_ran_gaussian (r, 100.0) + (float)screenHeight / 2
           };
           validPosition = true;
-          for (int j = 0; j < i; j++)
+          for (j = 0; j < i; j++)
             {
               float dist = Vector2Distance (position, ensemble[j].position);
               if (dist < 2 * radius)
@@ -68,18 +68,13 @@ main (void)
       InitParticle (&ensemble[i], position, velocity, radius, RAYWHITE);
     }
 
-  for (i = 0; i < N / 10; i++)
-    {
-      ensemble[i].color = MAROON;
-    }
-
-  InitWindow (screenWidth, screenHeight, "Gas Box");
+  InitWindow (screenWidth, screenHeight, "Simulation of Gas in Box");
   SetTargetFPS (fps);
 
   while (!WindowShouldClose ())
     {
       BeginDrawing ();
-      ClearBackground (BLACK);
+      ClearBackground (DARKGRAY);
       for (i = 0; i < N; i++)
         {
           CollisionWithWall (&ensemble[i], screenWidth, screenHeight);
